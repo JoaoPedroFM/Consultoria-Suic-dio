@@ -1,2 +1,2 @@
-# Consultoria-Suic-dio
+# Consultoria-Suicídio
 Consultoria sobre dados de suicídio
