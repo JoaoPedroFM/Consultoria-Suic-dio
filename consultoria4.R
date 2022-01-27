@@ -1,11 +1,21 @@
 library(tidyverse)
 library(readxl)
+library(epiDisplay)
 
 base = read_csv2("suicidios.csv")
 municipio = read_excel("Municipios_2010.xlsx")
- 
-#Tratando a base de dados
-base = base |> 
+sul = base |> 
+  mutate(UF= str_sub(Microrregiao, 1, 2)) |> 
+  filter(UF== 41|UF== 42|UF== 43)
+sul = mutate_if(sul, is.character, as.factor)
+
+
+
+sul$Microrregiao = as.factor(sul$Microrregiao)
+
+
+#Tratando a sul de dados
+sul = na.omit(sul) |>  # 2 observacoes com valores faltantes
   mutate(suicidio_paf = factor(suicidio_paf, labels = c("Nao","Sim")),
          id_legal = factor(id_legal, labels = c("Nao","Sim")),
          trab_armado = factor(trab_armado, labels = c("Nao","Sim")),
@@ -17,28 +27,59 @@ base = base |>
                                         "Separado","Divorciado","Ignorado")),
          escolaridade = factor(escolaridade, 
                                labels = c("Nenhuma","1 a 3 anos","4 a 7 anos",
-                                          "8 a 11 anos","5 a 12 anos","Ignorado")))
+                                          "8 a 11 anos","12 anos ou mais","Ignorado")))
          
 
-#Visualizando a base
-base
+################################################################################
+# ANALISE EXPLORATORIA
+
+# Tabela de frequencias
+tab1(sul$suicidio_paf,graph = F)
+tab1(sul$id_legal,graph = F)
+tab1(sul$trab_armado,graph = F)
+tab1(sul$sexo,graph = F)
+tab1(sul$raca,graph = F)
+tab1(sul$estado_civil,graph = F)
+tab1(sul$escolaridade,graph = F)
+
+
+# IDADE
+#Histograma da idade dos candidatos (população geral)
+sul |> 
+  ggplot(mapping = aes(x = idade)) +
+  geom_histogram(fill= "darkred", col="white")+
+  # scale_x_continuous(breaks = seq(15,90,5))+
+  scale_y_continuous(label = scales::label_number(big.mark = ".",
+                                                  decimal.mark = ",")) +
+  labs(y= "Frequência", x="Idade") + theme_classic() + 
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5, 
+                                                            size=14, face="bold"), 
+        text = element_text(size=15), plot.subtitle = element_text(hjust = 0.5, size=12))
+
+
+################################################################################
+# MODELAGEM
 
 #Carregando pacote
 library(rstanarm)
 
 #Ajustando o modelo
-ajuste = stan_glm(formula = suicidio_paf ~ .,
-                  data = base,
+ajuste = stan_glm(formula = suicidio_paf ~ Microrregiao + idade + id_legal
+                  + trab_armado + sexo + raca + estado_civil + escolaridade,
+                  data = sul,
                   family = binomial(link = "logit"),
                   prior_intercept = normal(0,10),
                   refresh = 0,
                   chain = 2,
-                  iter = 10000,
-                  warmup = 2000,
+                  iter = 1000,
+                  warmup = 200,
                   thin = 4)
 
 #Visualizando o ajuste
 ajuste$stanfit
+
+save(ajuste, file="ajuste.rdata")
+load("ajuste.rdata")
 
 #Plotando os intervalos de credibilidade
 plot(ajuste, prob = 0.9)
