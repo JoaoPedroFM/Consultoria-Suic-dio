@@ -1,0 +1,57 @@
+---
+header-includes: \usepackage{graphicx} \usepackage{titling} \usepackage{float} \floatplacement{figure}{H} \usepackage{array} \usepackage{indentfirst} \usepackage[portuguese]{babel} \usepackage{eso-pic} \usepackage{tikz}
+output: 
+  pdf_document:
+   number_sections: true
+   extra_dependencies: ["multirow","titling","float","array"]
+   df_print: paged
+   
+---
+
+
+\renewcommand{\tablename}{Tabela}
+\renewcommand{\figurename}{Figura}
+\renewcommand{\contentsname}{Sumário}
+\renewcommand{\listfigurename}{Lista de Figuras}
+\renewcommand{\listtablename}{Lista de Tabelas}
+
+\newcommand\PlaceText[3]{%
+\begin{tikzpicture}[remember picture,overlay]
+\node[outer sep=0pt,inner sep=0pt,anchor=south west] 
+  at ([xshift=#1,yshift=-#2]current page.north west) {#3};
+\end{tikzpicture}%
+}
+
+\makeatletter
+\begin{titlepage}
+
+
+
+
+~\\
+\vspace{3cm}
+\begin{minipage}{0.65\textwidth}
+\begin{flushleft}
+{\fontsize{28}{24}\bf\sffamily Jovens Construtores}
+\end{flushleft}
+\vspace{3cm}
+\begin{flushleft}
+{\fontsize{20}{16}\sffamily Equipe:\\
+  Igor Freitas \\
+  João Pedro Fernandes \\
+  Pedro Fernando \\
+  Rafael Couto \\
+  Wu Xin}
+\end{flushleft}
+\end{minipage}
+
+\AddToShipoutPictureBG*{%]
+    \AtPageLowerLeft{%
+        \includegraphics[width=1.0\paperwidth]{kth-footer.jpeg}%
+    }%
+}
+
+\PlaceText{65mm}{270mm}{\color{white}\fontsize{12}{0}\sffamily Consultoria Estatística }
+\PlaceText{65mm}{275mm}{\color{white}\fontsize{8}{0}\sffamily Rio de Janeiro, 2022 }
+\end{titlepage}
+\makeatother
