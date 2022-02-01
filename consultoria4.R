@@ -1,24 +1,24 @@
-library(tidyverse)
+{library(tidyverse)
 library(dplyr)
 library(readxl)
 library(epiDisplay)
-{library(CARBayesdata)
-  library(sp)
-  library(dplyr)
-  library(sf)
-  library(ggplot2)
-  library(spdep)
-  library(spatialreg)
-  library(rgdal)
-  library(leaflet)}
+library(CARBayesdata)
+library(sp)
+library(dplyr)
+library(sf)
+library(ggplot2)
+library(spdep)
+library(spatialreg)
+library(rgdal)
+library(leaflet)}
 
 base = read_csv2("suicidios.csv")
 municipio = read_excel("Municipios_2010.xlsx")
 sul = base |> 
   mutate(UF= str_sub(Microrregiao, 1, 2)) |> 
   filter(UF== 41|UF== 42|UF== 43)
-sul = mutate_if(sul, is.numeric, as.factor)
-sul$idade = as.numeric(sul$idade)
+
+sul$Microrregiao = as.character(sul$Microrregiao)
 
 # fazendo o mapa da proporcao
 prop = sul |> 
@@ -49,20 +49,20 @@ map1
 # mais escuros, maiores os precos
 # localmente ha areas que formam clusters em relacao aos precos
 
-# #Tratando a sul de dados
-# sul = na.omit(sul) |>  # 2 observacoes com valores faltantes
-#   mutate(suicidio_paf = factor(suicidio_paf, labels = c("Nao","Sim")),
-#          id_legal = factor(id_legal, labels = c("Nao","Sim")),
-#          trab_armado = factor(trab_armado, labels = c("Nao","Sim")),
-#          sexo = factor(sexo, labels = c("Masculino","Feminino")),
-#          raca = factor(raca, labels = c("Branca","Preta","Amarela",
-#                                         "Parda","Indigena","Ignorado")),
-#          estado_civil = factor(estado_civil,
-#                                labels = c("Solteiro","Casado","Viuvo",
-#                                           "Separado","Divorciado","Ignorado")),
-#          escolaridade = factor(escolaridade,
-#                                labels = c("Nenhuma","1 a 3 anos","4 a 7 anos",
-#                                           "8 a 11 anos","12 anos ou mais","Ignorado")))
+#Tratando a sul de dados
+sul = na.omit(sul) |>  # 2 observacoes com valores faltantes
+  mutate(suicidio_paf = factor(suicidio_paf, labels = c("Nao","Sim")),
+         id_legal = factor(id_legal, labels = c("Nao","Sim")),
+         trab_armado = factor(trab_armado, labels = c("Nao","Sim")),
+         sexo = factor(sexo, labels = c("Masculino","Feminino")),
+         raca = factor(raca, labels = c("Branca","Preta","Amarela",
+                                        "Parda","Indigena","Ignorado")),
+         estado_civil = factor(estado_civil,
+                               labels = c("Solteiro","Casado","Viuvo",
+                                          "Separado","Divorciado","Ignorado")),
+         escolaridade = factor(escolaridade,
+                               labels = c("Nenhuma","1 a 3 anos","4 a 7 anos",
+                                          "8 a 11 anos","12 anos ou mais","Ignorado")))
 
 ################################################################################
 # ANALISE EXPLORATORIA
@@ -93,6 +93,120 @@ sul |>
 summary(sul$idade)
 sd(sul$idade)
 
+
+arma_raca <- sul |> 
+  group_by(raca,suicidio_paf) |> 
+  summarize(n = n())  |>
+  mutate(pct = n/sum(n),
+         rotulo = scales::percent(pct))
+
+# adicionando os percentuais no gráfico
+arma_raca |>
+  ggplot(mapping = aes(x = raca,
+                       y = pct,
+                       fill = factor(suicidio_paf))) +
+  geom_bar(stat = "identity",
+           position = "fill") +
+  geom_text(aes(label = rotulo), 
+            size = 3, 
+            position = position_stack(vjust = 0.5))  +
+  scale_fill_brewer(palette = "Set2") +
+  labs(x = "Raça",
+       y = "Proporção",
+       fill = "Uso de arma de fogo no suicídio",
+       title="Perfil das pessoas que cometeram suicídio por arma de fogo por raça",
+       subtitle="região sul") + theme_classic() +
+  theme(legend.position = "top")  +
+  theme(plot.title = element_text(hjust = 0.5, size=14, face="bold"),
+        text = element_text(size=15), plot.subtitle = element_text(hjust = 0.5, size=12)) +
+  scale_x_discrete(guide = guide_axis(n.dodge = 2))
+
+
+arma_sexo <- sul |> 
+  group_by(sexo,suicidio_paf) |> 
+  summarize(n = n()) |> 
+  mutate(pct = n/sum(n),
+         rotulo = scales::percent(pct))
+
+# adicionando os percentuais no gráfico
+arma_sexo |>
+  ggplot(mapping = aes(x = sexo,
+                       y = pct,
+                       fill = factor(suicidio_paf))) +
+  geom_bar(stat = "identity",
+           position = "fill") +
+  geom_text(aes(label = rotulo), 
+            size = 3, 
+            position = position_stack(vjust = 0.5))  +
+  scale_fill_brewer(palette = "Set2") +
+  labs(x = "Sexo",
+       y = "Proporção",
+       fill = "Uso de arma de fogo no suicídio",
+       title="Perfil das pessoas que cometeram suicídio por arma de fogo por sexo ",
+       subtitle="região sul") + theme_classic() +
+  theme(legend.position = "top")  +
+  theme(plot.title = element_text(hjust = 0.5, size=14, face="bold"),
+        text = element_text(size=15), plot.subtitle = element_text(hjust = 0.5, size=12)) +
+  scale_x_discrete(guide = guide_axis(n.dodge = 2))
+arma_civil <- sul |> 
+  group_by(estado_civil,suicidio_paf) |> 
+  summarize(n = n()) |> 
+  mutate(pct = n/sum(n),
+         rotulo = scales::percent(pct))
+
+# adicionando os percentuais no gráfico
+arma_civil |>
+  ggplot(mapping = aes(x = estado_civil,
+                       y = pct,
+                       fill = factor(suicidio_paf))) +
+  geom_bar(stat = "identity",
+           position = "fill") +
+  geom_text(aes(label = rotulo), 
+            size = 3, 
+            position = position_stack(vjust = 0.5))  +
+  scale_fill_brewer(palette = "Set2") +
+  labs(x = "Estado Civil",
+       y = "Proporção",
+       fill = "Uso de arma de fogo no suicídio",
+       title="Perfil das pessoas que cometeram suicídio por arma de fogo por estado civil",
+       subtitle="região sul") + theme_classic() +
+  theme(legend.position = "top")  +
+  theme(plot.title = element_text(hjust = 0.5, size=14, face="bold"),
+        text = element_text(size=15), plot.subtitle = element_text(hjust = 0.5, size=12)) +
+  scale_x_discrete(guide = guide_axis(n.dodge = 2))
+
+
+
+arma_esc <- sul |> 
+  group_by(escolaridade,suicidio_paf) |> 
+  summarize(n = n()) |> 
+  mutate(pct = n/sum(n),
+         rotulo = scales::percent(pct))
+
+# adicionando os percentuais no gráfico
+arma_esc |>
+  ggplot(mapping = aes(x = escolaridade,
+                       y = pct,
+                       fill = factor(suicidio_paf))) +
+  geom_bar(stat = "identity",
+           position = "fill") +
+  geom_text(aes(label = rotulo), 
+            size = 3, 
+            position = position_stack(vjust = 0.5))  +
+  scale_fill_brewer(palette = "Set2") +
+  labs(x = "Escolaridade",
+       y = "Proporção",
+       fill = "Uso de arma de fogo no suicídio",
+       title="Perfil das pessoas que cometeram suicídio por arma de fogo por escolaridade",
+       subtitle="região sul") + theme_classic() +
+  theme(legend.position = "top")  +
+  theme(plot.title = element_text(hjust = 0.5, size=14, face="bold"),
+        text = element_text(size=15), plot.subtitle = element_text(hjust = 0.5, size=12)) +
+  scale_x_discrete(guide = guide_axis(n.dodge = 2))
+
+
+
+
 ################################################################################
 # MODELAGEM
 
@@ -102,43 +216,33 @@ library(spBayes)
 library(CARBayes)
 
 # juntando as informacoes numa base unica
-SUL_SF <- left_join(x=SUL_SF, y=sul, by=c("CD_MICRO"="Microrregiao"))
-head(SUL_SF)
+municipio$Microrregiao = as.character(municipio$Microrregiao)
+municipio = municipio |> 
+  filter(UF== 41|UF== 42|UF== 43) |> 
+  distinct(Microrregiao, Nome_Micro) 
+sul_mun <- left_join(x=sul, y=municipio, by="Microrregiao")
+head(sul_mun)
 
-ajuste_esp = S.glm(formula = suicidio_paf ~ idade + id_legal + trab_armado
-                            + sexo + raca + estado_civil + escolaridade, 
-                            family="binomial", data = SUL_SF, burnin=10,
-                            trials= rep(50,21946), n.sample= 1000)
+library(rstanarm)
 
+ajuste= stan_glm(formula = suicidio_paf ~ idade + id_legal + trab_armado
+                 + sexo + raca + estado_civil + escolaridade + Nome_Micro, 
+                 family="binomial"(link="logit"), data = sul_mun,
+                 prior_intercept = normal(0,10),
+                 refresh = 0,
+                 chain = 2,
+                 iter = 10000,
+                 warmup = 2000,
+                 thin = 4)
 
-conf = data.frame(ajuste_esp$summary.results)
-nome = c("(Intercept)","idade","id_legal","trab_armado","sexo","raca",
-         "estado_civil","escolaridade")
-nome = as.data.frame(nome)
-conf = cbind(conf, nome)
+save(ajuste, file="ajuste.Rdata")
+#Visualizando o ajuste
+ajuste$stanfit
 
+#Plotando os intervalos de credibilidade
+plot(ajuste, prob = 0.95)
 
-#Fazendo a leitura do arquivo Base saude.xlsx
-conf = conf |> 
-  gather(key = "IC",
-         value = "valor",
-         2:3)
-
-conf
-
-# comparando expectativa de vida nos dois anos
-conf |> 
-  filter(nome!="(Intercept)") |> 
-  ggplot(mapping = aes(x= valor, 
-                       y = reorder(nome, valor, max))) +
-  geom_point(aes(color = IC)) +
-  geom_line(aes(group = nome)) +
-  geom_vline(xintercept=0, col="red") +
-  labs (x = "Expectativa de vida (anos)",
-        y = "UF",
-        color = "Ano",
-        title = "Expectativa de vida por UF",
-        subtitle = "Ano de 2010") +
-  theme_minimal() +
-  theme(panel.grid.major.y = element_line(linetype = "dashed"))
-
+#Visualizando convergência
+plot(ajuste, 
+     plotfun = "combo", 
+     regex_pars = "id_legal")

@@ -99,6 +99,16 @@ ajuste_esp = S.glm(formula = suicidio_paf ~ idade + id_legal + trab_armado
 
 print(ajuste_esp)
 
+# cOM S.CARdissimilarity
+ajuste_dis = S.CARdissimilarity(formula = suicidio_paf ~ idade + id_legal + trab_armado
+                   + sexo + raca + estado_civil + escolaridade, 
+                   family="binomial", data = SUL_SF, burnin=10, Z=Z,
+                   trials= rep(50,21946), n.sample= 1000)
+
+
+
+
+
 
 
 
