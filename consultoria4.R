@@ -67,7 +67,7 @@ sul = na.omit(sul) |>  # 2 observacoes com valores faltantes
 ################################################################################
 # ANALISE EXPLORATORIA
 
-# Tabela de frequencias
+# Tabela de frequencias para as variaveis qualitativas
 tab1(sul$suicidio_paf,graph = F)
 tab1(sul$id_legal,graph = F)
 tab1(sul$trab_armado,graph = F)
@@ -77,23 +77,24 @@ tab1(sul$estado_civil,graph = F)
 tab1(sul$escolaridade,graph = F)
 
 
-# IDADE
-#Histograma da idade dos candidatos (populacao geral)
-sul |> 
-  ggplot(mapping = aes(x = idade)) +
-  geom_histogram(fill= "darkred", col="white")+
-  # scale_x_continuous(breaks = seq(15,90,5))+
-  scale_y_continuous(label = scales::label_number(big.mark = ".",
-                                                  decimal.mark = ",")) +
-  labs(y= "Frequencia", x="Idade") + theme_classic() + 
-  theme(legend.position = "none", plot.title = element_text(hjust = 0.5, 
-                                                            size=14, face="bold"), 
-        text = element_text(size=15), plot.subtitle = element_text(hjust = 0.5, size=12))
+# # IDADE
+# #Histograma da idade dos candidatos (populacao geral)
+# sul |> 
+#   ggplot(mapping = aes(x = idade)) +
+#   geom_histogram(fill= "darkred", col="white")+
+#   # scale_x_continuous(breaks = seq(15,90,5))+
+#   scale_y_continuous(label = scales::label_number(big.mark = ".",
+#                                                   decimal.mark = ",")) +
+#   labs(y= "Frequencia", x="Idade") + theme_classic() + 
+#   theme(legend.position = "none", plot.title = element_text(hjust = 0.5, 
+#                                                             size=14, face="bold"), 
+#         text = element_text(size=15), plot.subtitle = element_text(hjust = 0.5, size=12))
 
 summary(sul$idade)
 sd(sul$idade)
 
-
+################################################################################
+# suicidio_paf x raca
 arma_raca <- sul |> 
   group_by(raca,suicidio_paf) |> 
   summarize(n = n())  |>
@@ -115,13 +116,14 @@ arma_raca |>
        y = "Proporção",
        fill = "Uso de arma de fogo no suicídio",
        title="Perfil das pessoas que cometeram suicídio por arma de fogo por raça",
-       subtitle="região sul") + theme_classic() +
+       subtitle="Região sul") + theme_classic() +
   theme(legend.position = "top")  +
   theme(plot.title = element_text(hjust = 0.5, size=14, face="bold"),
         text = element_text(size=15), plot.subtitle = element_text(hjust = 0.5, size=12)) +
   scale_x_discrete(guide = guide_axis(n.dodge = 2))
 
-
+################################################################################
+# suicidio_paf x sexo
 arma_sexo <- sul |> 
   group_by(sexo,suicidio_paf) |> 
   summarize(n = n()) |> 
@@ -143,11 +145,14 @@ arma_sexo |>
        y = "Proporção",
        fill = "Uso de arma de fogo no suicídio",
        title="Perfil das pessoas que cometeram suicídio por arma de fogo por sexo ",
-       subtitle="região sul") + theme_classic() +
+       subtitle="Região sul") + theme_classic() +
   theme(legend.position = "top")  +
   theme(plot.title = element_text(hjust = 0.5, size=14, face="bold"),
         text = element_text(size=15), plot.subtitle = element_text(hjust = 0.5, size=12)) +
   scale_x_discrete(guide = guide_axis(n.dodge = 2))
+
+################################################################################
+# suicidio_paf x estado civil
 arma_civil <- sul |> 
   group_by(estado_civil,suicidio_paf) |> 
   summarize(n = n()) |> 
@@ -169,14 +174,14 @@ arma_civil |>
        y = "Proporção",
        fill = "Uso de arma de fogo no suicídio",
        title="Perfil das pessoas que cometeram suicídio por arma de fogo por estado civil",
-       subtitle="região sul") + theme_classic() +
+       subtitle="Região sul") + theme_classic() +
   theme(legend.position = "top")  +
   theme(plot.title = element_text(hjust = 0.5, size=14, face="bold"),
-        text = element_text(size=15), plot.subtitle = element_text(hjust = 0.5, size=12)) +
-  scale_x_discrete(guide = guide_axis(n.dodge = 2))
+        text = element_text(size=15), plot.subtitle = element_text(hjust = 0.5, size=12))
 
 
-
+################################################################################
+# suicidio_paf x escolaridade
 arma_esc <- sul |> 
   group_by(escolaridade,suicidio_paf) |> 
   summarize(n = n()) |> 
@@ -198,7 +203,7 @@ arma_esc |>
        y = "Proporção",
        fill = "Uso de arma de fogo no suicídio",
        title="Perfil das pessoas que cometeram suicídio por arma de fogo por escolaridade",
-       subtitle="região sul") + theme_classic() +
+       subtitle="Região sul") + theme_classic() +
   theme(legend.position = "top")  +
   theme(plot.title = element_text(hjust = 0.5, size=14, face="bold"),
         text = element_text(size=15), plot.subtitle = element_text(hjust = 0.5, size=12)) +
@@ -223,19 +228,19 @@ municipio = municipio |>
 sul_mun <- left_join(x=sul, y=municipio, by="Microrregiao")
 head(sul_mun)
 
-library(rstanarm)
+# ajuste= stan_glm(formula = suicidio_paf ~ idade + id_legal + trab_armado
+#                  + sexo + raca + estado_civil + escolaridade + Nome_Micro, 
+#                  family="binomial"(link="logit"), data = sul_mun,
+#                  prior_intercept = normal(0,10),
+#                  refresh = 0,
+#                  chain = 2,
+#                  iter = 10000,
+#                  warmup = 2000,
+#                  thin = 4)
 
-ajuste= stan_glm(formula = suicidio_paf ~ idade + id_legal + trab_armado
-                 + sexo + raca + estado_civil + escolaridade + Nome_Micro, 
-                 family="binomial"(link="logit"), data = sul_mun,
-                 prior_intercept = normal(0,10),
-                 refresh = 0,
-                 chain = 2,
-                 iter = 10000,
-                 warmup = 2000,
-                 thin = 4)
+# save(ajuste, file="ajuste.Rdata")
+load("ajuste.Rdata")
 
-save(ajuste, file="ajuste.Rdata")
 #Visualizando o ajuste
 ajuste$stanfit
 
