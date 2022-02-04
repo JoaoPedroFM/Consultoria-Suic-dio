@@ -5,7 +5,7 @@ output:
    number_sections: true
    extra_dependencies: ["multirow","titling","float","array"]
    df_print: paged
-   
+always_allow_html: true   
 ---
 
 
@@ -32,7 +32,7 @@ output:
 \vspace{3cm}
 \begin{minipage}{0.65\textwidth}
 \begin{flushleft}
-{\fontsize{28}{24}\bf\sffamily Jovens Construtores}
+{\fontsize{28}{24}\bf\sffamily Consultoria Suicídio}
 \end{flushleft}
 \vspace{3cm}
 \begin{flushleft}
@@ -45,9 +45,61 @@ output:
 \end{flushleft}
 \end{minipage}
 
+```{r}
+{library(tidyverse)
+library(dplyr)
+library(readxl)
+library(epiDisplay)
+library(CARBayesdata)
+library(sp)
+library(dplyr)
+library(sf)
+library(ggplot2)
+library(spdep)
+library(spatialreg)
+library(rgdal)
+library(leaflet)}
+
+base = read_csv2("suicidios.csv")
+municipio = read_excel("Municipios_2010.xlsx")
+sul = base |> 
+  mutate(UF= str_sub(Microrregiao, 1, 2)) |> 
+  filter(UF== 41|UF== 42|UF== 43)
+
+sul$Microrregiao = as.character(sul$Microrregiao)
+
+# fazendo o mapa da proporcao
+prop = sul |> 
+  dplyr::select(c(1,2)) |> 
+  group_by(Microrregiao) |> 
+  summarise(media = mean(suicidio_paf))
+
+library(sf)
+PR = st_read("PR_Microrregioes_2020.shp")
+SC = st_read("SC_Microrregioes_2020.shp")
+RS = st_read("RS_Microrregioes_2020.shp")
+
+SUL_SF = rbind(PR, SC, RS)
+
+# juntando as informacoes numa base unica
+prop <- left_join(x=SUL_SF, y=prop, by=c("CD_MICRO"="Microrregiao"))
+head(prop)
+
+colours <- colorNumeric(palette = "YlOrRd", domain = prop$media)
+map1 <- leaflet(data=prop) |>
+  addTiles() |>
+  addPolygons(fillColor = ~colours(media), color="", weight=1,
+              fillOpacity = 0.8) |>
+  addLegend(pal = colours, values = prop$media, opacity = 1,
+            title="media") |>
+  addScaleBar(position="bottomleft")
+map1
+```
+
+
 \AddToShipoutPictureBG*{%]
     \AtPageLowerLeft{%
-        \includegraphics[width=1.0\paperwidth]{kth-footer.jpeg}%
+        \includegraphics[width=1.0\paperwidth]{kth-footer.jpg}%
     }%
 }
 

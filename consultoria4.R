@@ -43,7 +43,7 @@ map1 <- leaflet(data=prop) |>
   addPolygons(fillColor = ~colours(media), color="", weight=1,
               fillOpacity = 0.8) |>
   addLegend(pal = colours, values = prop$media, opacity = 1,
-            title="media") |>
+            title="média") |>
   addScaleBar(position="bottomleft")
 map1
 # mais escuros, maiores os precos
@@ -249,5 +249,35 @@ plot(ajuste, prob = 0.95)
 
 #Visualizando convergência
 plot(ajuste, 
+     plotfun = "combo", 
+     regex_pars = "id_legal")
+
+##################################################################################
+# Ajuste 2- sem a microrregiao Cerro Azul
+
+sul_mun2 = sul_mun |> 
+  filter(Nome_Micro != "Cerro Azul")
+
+# ajuste2= stan_glm(formula = suicidio_paf ~ idade + id_legal + trab_armado
+#                  + sexo + raca + estado_civil + escolaridade + Nome_Micro,
+#                  family="binomial"(link="logit"), data = sul_mun2,
+#                  prior_intercept = normal(0,10),
+#                  refresh = 0,
+#                  chain = 2,
+#                  iter = 10000,
+#                  warmup = 2000,
+#                  thin = 4)
+
+# save(ajuste2, file="ajuste2.Rdata")
+load("ajuste2.Rdata")
+
+#Visualizando o ajuste2
+ajuste2$stanfit
+
+#Plotando os intervalos de credibilidade
+plot(ajuste2, prob = 0.95)
+
+#Visualizando convergência
+plot(ajuste2, 
      plotfun = "combo", 
      regex_pars = "id_legal")
