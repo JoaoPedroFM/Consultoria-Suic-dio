@@ -244,40 +244,66 @@ load("ajuste.Rdata")
 #Visualizando o ajuste
 ajuste$stanfit
 
-#Plotando os intervalos de credibilidade
-plot(ajuste, prob = 0.95)
+data_ajuste = as.data.frame(ajuste[["stan_summary"]])
+data_ajuste = data_ajuste |> 
+  dplyr::select(mean, `2.5%`, `97.5%`) |> 
+  rename(IC1=`2.5%`, IC2=`97.5%`) |> 
+  filter(IC1<0, IC2>0)
+
+data_ajuste$nome = rownames(data_ajuste)
+
+#Fazendo a leitura do arquivo Base saude.xlsx
+data_ajuste_reorg = data_ajuste |> 
+  gather(key = "IC",
+         value = "valor",
+         2:3)
+
+data_ajuste_reorg = data_ajuste_reorg |> 
+  dplyr::select(nome, IC, valor, mean) |> 
+  mutate(exp_mean = exp(mean))
+
+
+# comparando expectativa de vida nos dois anos
+data_ajuste_reorg |> 
+  ggplot(mapping = aes(x= valor, 
+                       y = nome)) +
+  geom_point(aes(color = factor(IC))) +
+  geom_vline(xintercept=0, col="green") +
+  geom_line(aes(group = nome)) +
+  labs (x = "",
+        y = "Variável",
+        color = "Limite do \nIntervalo",
+        title = "Intervalos de credibilidade",
+        subtitle = "IC1 = 2.5% e IC2 = 97.5%") +
+  theme_minimal() +
+  theme(panel.grid.major.y = element_line(linetype = "dashed"))+
+  scale_y_discrete(guide = guide_axis(n.dodge = 2))
 
 #Visualizando convergência
 plot(ajuste, 
      plotfun = "combo", 
-     regex_pars = "id_legal")
+     regex_pars = "raca")
+
 
 ##################################################################################
-# Ajuste 2- sem a microrregiao Cerro Azul
+# # Ajuste 2- sem a microrregiao Cerro Azul
+# 
+# sul_mun2 = sul_mun |> 
+#   filter(Nome_Micro != "Cerro Azul")
+# 
+# # ajuste2= stan_glm(formula = suicidio_paf ~ idade + id_legal + trab_armado
+# #                  + sexo + raca + estado_civil + escolaridade + Nome_Micro,
+# #                  family="binomial"(link="logit"), data = sul_mun2,
+# #                  prior_intercept = normal(0,10),
+# #                  refresh = 0,
+# #                  chain = 2,
+# #                  iter = 10000,
+# #                  warmup = 2000,
+# #                  thin = 4)
+# 
+# # save(ajuste2, file="ajuste2.Rdata")
+# load("ajuste2.Rdata")
+# 
+# #Visualizando o ajuste2
+# ajuste2$stanfit
 
-sul_mun2 = sul_mun |> 
-  filter(Nome_Micro != "Cerro Azul")
-
-# ajuste2= stan_glm(formula = suicidio_paf ~ idade + id_legal + trab_armado
-#                  + sexo + raca + estado_civil + escolaridade + Nome_Micro,
-#                  family="binomial"(link="logit"), data = sul_mun2,
-#                  prior_intercept = normal(0,10),
-#                  refresh = 0,
-#                  chain = 2,
-#                  iter = 10000,
-#                  warmup = 2000,
-#                  thin = 4)
-
-# save(ajuste2, file="ajuste2.Rdata")
-load("ajuste2.Rdata")
-
-#Visualizando o ajuste2
-ajuste2$stanfit
-
-#Plotando os intervalos de credibilidade
-plot(ajuste2, prob = 0.95)
-
-#Visualizando convergência
-plot(ajuste2, 
-     plotfun = "combo", 
-     regex_pars = "id_legal")
