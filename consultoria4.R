@@ -248,9 +248,16 @@ data_ajuste = as.data.frame(ajuste[["stan_summary"]])
 data_ajuste = data_ajuste |> 
   dplyr::select(mean, `2.5%`, `97.5%`) |> 
   rename(IC1=`2.5%`, IC2=`97.5%`) |> 
+  mutate(mean= round(mean,2), IC1= round(IC1, 2), IC2= round(IC2, 2)) |> 
   filter(IC1<0, IC2>0)
 
 data_ajuste$nome = rownames(data_ajuste)
+
+# data_ajuste = data_ajuste |> 
+#   dplyr::select(nome, everything()) 
+
+# openxlsx::write.xlsx(data_ajuste_reorg, file="data_ajuste_reorg.xlsx")
+
 
 #Fazendo a leitura do arquivo Base saude.xlsx
 data_ajuste_reorg = data_ajuste |> 
@@ -262,6 +269,8 @@ data_ajuste_reorg = data_ajuste_reorg |>
   dplyr::select(nome, IC, valor, mean) |> 
   mutate(exp_mean = exp(mean))
 
+data_ajuste_reorg = data_ajuste_reorg |> 
+  mutate(exp_mean = round(exp_mean,2))
 
 # comparando expectativa de vida nos dois anos
 data_ajuste_reorg |> 
@@ -273,26 +282,16 @@ data_ajuste_reorg |>
   labs (x = "",
         y = "Variável",
         color = "Limite do \nIntervalo",
-        title = "Intervalos de credibilidade",
+        title = "Intervalos de 95% de credibilidade",
         subtitle = "IC1 = 2.5% e IC2 = 97.5%") +
   theme_minimal() +
   theme(panel.grid.major.y = element_line(linetype = "dashed"))+
-  scale_y_discrete(guide = guide_axis(n.dodge = 2))
+  scale_y_discrete(guide = guide_axis(n.dodge = 2)) 
 
 #Visualizando convergência
 plot(ajuste, 
      plotfun = "combo", 
      regex_pars = "raca")
-
-
-#Normalidade:
-par(mfrow=c(1,1))
-qqnorm(ajuste$residuals,ylab = "Quantis Amostrais",xlab = "Quantis Teóricos",main = "QQ-plot - Normalidade")
-qqline(ajuste$residuals,lwd=3,col="red")
-
-
-
-
 
 ##################################################################################
 # # Ajuste 2- sem a microrregiao Cerro Azul
