@@ -285,6 +285,15 @@ plot(ajuste,
      regex_pars = "raca")
 
 
+#Normalidade:
+par(mfrow=c(1,1))
+qqnorm(ajuste$residuals,ylab = "Quantis Amostrais",xlab = "Quantis Teóricos",main = "QQ-plot - Normalidade")
+qqline(ajuste$residuals,lwd=3,col="red")
+
+
+
+
+
 ##################################################################################
 # # Ajuste 2- sem a microrregiao Cerro Azul
 # 
