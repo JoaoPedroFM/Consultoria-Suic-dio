@@ -43,7 +43,7 @@ map1 <- leaflet(data=prop) |>
   addPolygons(fillColor = ~colours(media), color="", weight=1,
               fillOpacity = 0.8) |>
   addLegend(pal = colours, values = prop$media, opacity = 1,
-            title="média") |>
+            title="proporção") |>
   addScaleBar(position="bottomleft")
 map1
 # mais escuros, maiores os precos
@@ -51,9 +51,9 @@ map1
 
 #Tratando a sul de dados
 sul = na.omit(sul) |>  # 2 observacoes com valores faltantes
-  mutate(suicidio_paf = factor(suicidio_paf, labels = c("Nao","Sim")),
-         id_legal = factor(id_legal, labels = c("Nao","Sim")),
-         trab_armado = factor(trab_armado, labels = c("Nao","Sim")),
+  mutate(suicidio_paf = factor(suicidio_paf, labels = c("Não","Sim")),
+         id_legal = factor(id_legal, labels = c("Não","Sim")),
+         trab_armado = factor(trab_armado, labels = c("Não","Sim")),
          sexo = factor(sexo, labels = c("Masculino","Feminino")),
          raca = factor(raca, labels = c("Branca","Preta","Amarela",
                                         "Parda","Indigena","Ignorado")),
@@ -119,8 +119,8 @@ arma_raca |>
        subtitle="Região sul") + theme_classic() +
   theme(legend.position = "top")  +
   theme(plot.title = element_text(hjust = 0.5, size=14, face="bold"),
-        text = element_text(size=15), plot.subtitle = element_text(hjust = 0.5, size=12)) +
-  scale_x_discrete(guide = guide_axis(n.dodge = 2))
+        text = element_text(size=15), plot.subtitle = element_text(hjust = 0.5, size=12)) 
+
 
 ################################################################################
 # suicidio_paf x sexo
@@ -148,8 +148,8 @@ arma_sexo |>
        subtitle="Região sul") + theme_classic() +
   theme(legend.position = "top")  +
   theme(plot.title = element_text(hjust = 0.5, size=14, face="bold"),
-        text = element_text(size=15), plot.subtitle = element_text(hjust = 0.5, size=12)) +
-  scale_x_discrete(guide = guide_axis(n.dodge = 2))
+        text = element_text(size=15), plot.subtitle = element_text(hjust = 0.5, size=12)) 
+
 
 ################################################################################
 # suicidio_paf x estado civil
@@ -206,8 +206,8 @@ arma_esc |>
        subtitle="Região sul") + theme_classic() +
   theme(legend.position = "top")  +
   theme(plot.title = element_text(hjust = 0.5, size=14, face="bold"),
-        text = element_text(size=15), plot.subtitle = element_text(hjust = 0.5, size=12)) +
-  scale_x_discrete(guide = guide_axis(n.dodge = 2))
+        text = element_text(size=15), plot.subtitle = element_text(hjust = 0.5, size=12)) 
+
 
 
 
@@ -293,6 +293,13 @@ plot(ajuste,
      plotfun = "combo", 
      regex_pars = "raca")
 
+#Calculando intervalo de credibilidade
+posterior_interval(object = ajuste, 
+                   regex_pars = "estado_civil", 
+                   prob = 0.65)
+
+#Entendo as prioris utilizadas
+prior_summary(ajuste)
 ##################################################################################
 # # Ajuste 2- sem a microrregiao Cerro Azul
 # 
